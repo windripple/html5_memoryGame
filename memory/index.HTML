@@ -1,0 +1,306 @@
+﻿<html> 
+<head> 
+<title>Memory game using pictures</title> 
+
+</head> 
+
+<audio id="flip-sound" autobuffer>
+Your browser doesn't support the HTML5 element audio. 
+		<source src="flip-sound.mp3">
+</audio>
+<audio id="bingo" autobuffer>
+Your browser doesn't support the HTML5 element audio. 
+		<source src="game.wav">
+</audio>
+
+
+<script type="text/javascript"> 
+
+
+var friend1;
+var friend2;
+var friend3;
+var friend4;
+var friend5;
+
+var vNum1;
+var vNum2;
+var ctx; 
+var firstpick = true; 
+var firstcard = -1; 
+var secondcard; 
+var backcolor = "rgb(139,58,58)"; 
+var tablecolor = "rgb(255,255,255)"; 
+var deck = []; 
+var firstsx = 30; 
+var firstsy = 50; 
+var margin = 30; 
+var cardwidth = 80; 
+var cardheight = 80;
+var matched; 
+var starttime; 
+var count = 0; 
+var seconds ;
+var back_img = new Image();
+back_img.src = "d.JPG";
+
+var audio;
+
+
+
+
+
+
+
+var pairs = [
+["111.jpg","1111.jpg"],
+["222.jpg","2222.jpg"], 
+["333.jpg","3333.jpg"], 
+["444.jpg","4444.jpg"], 
+["555.jpg","5555.jpg"], 
+["666.jpg","6666.jpg"], 
+["777.jpg","7777.jpg"], 
+["888.jpg","8888.jpg"] 
+] ;
+
+function Card(sx,sy,swidth,sheight, img, info) { 
+this.sx = sx; 
+this.sy = sy; 
+this.swidth = swidth; 
+this.sheight = sheight; 
+this.info = info; 
+this.img = img;
+this.draw = drawback; 
+} 
+
+function makedeck() { 
+var i; 
+var acard; 
+var bcard; 
+var pica; 
+var picb; 
+var cx = firstsx; 
+var cy = firstsy; 
+for(i=0;i<pairs.length;i++) { 
+
+pica = new Image(); 
+pica.src = pairs[i][0]; 
+
+if(i==4)
+{
+
+cx = firstsx;
+}
+
+
+if(i<4){
+acard = new Card(cx,cy,cardwidth,cardheight,pica,i);
+	}else
+{
+
+acard = new Card(cx,cy+cardheight+margin,cardwidth,cardheight,pica,i);
+}
+deck.push(acard); 
+picb = new Image();
+picb.src = pairs[i][1];
+if(i<4){
+bcard = new Card(cx,cy+2*cardheight+2*margin,cardwidth,cardheight,picb,i); 
+}else
+{
+
+bcard = new Card(cx,cy+3*cardheight+3*margin,cardwidth,cardheight,picb,i); 
+}
+deck.push(bcard); 
+cx = cx+cardwidth+ margin; 
+acard.draw(); 
+bcard.draw(); 
+} 
+} 
+function shuffle() { 
+var i; 
+var k; 
+var holderinfo;
+var holderimg;  
+var dl = deck.length 
+var nt; 
+for (nt=0;nt<3*dl;nt++) { 
+i = Math.floor(Math.random()*dl); 
+k = Math.floor(Math.random()*dl); 
+holderinfo = deck[i].info;
+holderimg = deck[i].img;
+deck[i].info = deck[k].info; 
+deck[i].img = deck[k].img;  
+deck[k].info = holderinfo; 
+deck[k].img = holderimg; 
+} 
+} 
+function drawback() { 
+ctx.drawImage(back_img,this.sx,this.sy,this.swidth,this.sheight); 
+} 
+
+
+
+	
+    
+
+
+
+function choose(ev) 
+{ 
+
+	
+
+	var out; 
+	var mx; 
+	var my; 
+	var pick1; 
+	var pick2; 
+		if( ev.layerX || ev.layerX == 0) 
+		{ 
+				
+				mx= ev.layerX; 
+				my = ev.layerY; 
+		} 
+		else if (ev.offsetX || ev.offsetX == 0) 
+		{ 
+				
+				mx = ev.offsetX; 
+				my = ev.offsetY; 
+		} 
+var i; 
+
+for (i=0;i<deck.length;i++)
+{ 
+		var card = deck[i]; 
+		
+		if (card.sx >=0) 
+		
+if ((mx>card.sx)&&(mx<card.sx+card.swidth)&&(my>card.sy)&&(my<card.sy+card.sheight)) 
+{ 
+		
+		audio.play();
+		if ((firstpick)|| (i!=firstcard)) 
+		{ 
+		
+				
+				break;
+		} 
+} 
+
+} 
+if (i<deck.length) { 
+if (firstpick) { 
+firstcard = i; 
+firstpick = false; 
+ctx.drawImage(card.img,card.sx,card.sy,card.swidth,card.sheight) 
+; 
+
+} 
+else { 
+ 
+secondcard = i; 
+ctx.drawImage(card.img,card.sx,card.sy,card.swidth,card.sheight) 
+; 
+
+if (card.info==deck[firstcard].info) 
+{ 		
+		
+		audio2.play();
+		matched = true; 
+		count++; 
+		ctx.fillStyle= tablecolor; 
+		ctx.fillRect(10,480,900,100); 
+		ctx.fillStyle=backcolor;
+		ctx.font="bold 17pt 微軟正黑體"; 
+		ctx.fillText("至 目 前 為 止 成 功 配 對 數 : "+String(count),10,500); 
+
+
+		if (count>= .5*deck.length) 
+		{ 
+				var now = new Date(); 
+				var nt = Number(now.getTime()); 
+				seconds = Math.floor(.5+(nt-starttime)/1000); 
+				ctx.fillStyle= tablecolor; 
+				ctx.fillRect(0,0,900,400);
+				ctx.fillStyle=backcolor; 
+				out="您花了"+String(seconds)+ 
+				" 秒完成"; 
+			
+				
+			
+			
+				publish();
+				ctx.fillText(out,10,200); 
+				ctx.fillText("重新載入再玩一次",10,300); 
+		} 
+
+} 
+else { 
+matched = false; 
+
+} 
+firstpick = true; 
+canvas1.removeEventListener('click',choose,false); 
+setTimeout(flipback,500); 
+
+} 
+
+} 
+
+
+}
+function flipback() { 
+var card; 
+if (!matched) { 
+deck[firstcard].draw(); 
+deck[secondcard].draw(); 
+} 
+else { 
+ctx.fillStyle = tablecolor; 
+ctx.fillRect(deck[secondcard].sx,deck[secondcard].sy,deck[secondcard].swidth,deck[secondcard].sheight); 
+ctx.fillRect(deck[firstcard].sx,deck[firstcard].sy,deck[firstcard].swidth,deck[firstcard].sheight); 
+deck[secondcard].sx = -1; 
+deck[firstcard].sx = -1;
+
+} 
+canvas1.addEventListener('click',choose,false); 
+} 
+function init(){
+
+
+
+
+audio = document.getElementById("flip-sound");
+audio2 = document.getElementById("bingo");
+ctx = document.getElementById('canvas').getContext('2d'); 
+canvas1 = document.getElementById('canvas'); 
+canvas1.addEventListener('click',choose,false); 
+makedeck(); 
+shuffle(); 
+	
+ctx.font="bold 18pt 微軟正黑體"; 
+ctx.fillText("HTML5   易 經 翻 牌 記 憶 遊 戲",10,20);
+ctx.fillStyle = backcolor;
+ctx.font="bold 18pt 微軟正黑體"; 
+ctx.fillText("選 擇 兩 張 牌 並 記 憶 位 置 然 後 配 對",10,45);
+ctx.font="bold 17pt 微軟正黑體"; 
+ctx.fillText("至 目 前 為 止 成 功 配 對 數 : 0",10,500); 
+starttime = new Date(); 
+starttime = Number(starttime.getTime()); 
+} 
+
+
+
+
+
+
+</script> 
+
+<body onLoad="init();"> 
+<div id="fb-root"></div>
+
+<canvas id="canvas" width="520" height="520"> 
+Your browser doesn't support the HTML5 element canvas. 
+</canvas> 
+</body> 
+</html>
